@@ -31,7 +31,7 @@
 #include <stdint.h>
 #include <common/si5351c.h>
 
-#define WAIT_CPU_CLOCK_INIT_DELAY   (10000)
+#define WAIT_CPU_CLOCK_INIT_delay   (10000)
 
 uint8_t _cpu_speed=0;
 
