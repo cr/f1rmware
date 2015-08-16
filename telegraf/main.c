@@ -71,8 +71,8 @@ typedef struct {
 
 /* Globals */
 
-uint32_t g_freq = 2531000000U;
-const uint64_t g_freq64 = (const uint64_t)2531000000U;
+uint32_t g_freq = 433000000U;
+const uint64_t g_freq64 = (const uint64_t)433000000U;
 uint32_t baseband_filter_bw_hz = 0;
 uint32_t sample_rate_hz;
 telegraph_mode_t g_current_mode = TELEGRAPH_TX_MODE;
@@ -184,19 +184,15 @@ void render_display(void) {
   char sz_freq[10];
   char sz_vol[5];
   int digits = 0,i;
-  int f = g_freq/1000000;
+  int f = g_freq;
   int vol = g_volume*100;
 
   /* Convert freq to string (because IntToStr returns a local var !) */
-  for (i=4; i>0; i--) {
-      sz_freq[4-i] = num_charset[f/_pow(10, i-1)];
-      f -= (f/_pow(10, i-1))*(_pow(10,i-1));
+  for (i=9; i>=3; i--) {
+      sz_freq[9-i] = num_charset[f/_pow(10, i)];
+      f -= (f/_pow(10, i))*(_pow(10,i));
   }
-  sz_freq[4] = ' ';
-  sz_freq[5] = 'M';
-  sz_freq[6] = 'H';
-  sz_freq[7] = 'z';
-  sz_freq[8] = '\0';
+  sz_freq[7] = '\0';
 
   /* Convert freq to string. */
   for (i=3; i>0; i--) {
@@ -552,7 +548,7 @@ void main_ui(void) {
               max2837_stop();
 
               if (g_freq < 5000000000U)
-                g_freq += 1000000;
+                g_freq += 10000;
               else
                 g_freq = 5000000000U;
 
@@ -582,15 +578,12 @@ void main_ui(void) {
       if ((getInputRaw() & BTN_DOWN) == BTN_DOWN) {
           delay(8000);
           if ((getInputRaw() & BTN_DOWN) == BTN_DOWN) {
-              ON(LED4);
-              delay(1000000);
-              OFF(LED4);
               max2837_stop();
 
               if (g_freq < 40000000)
                 g_freq = 40000000;
               else
-                g_freq -= 1000000;
+                g_freq -= 10000;
 
               /* Update the lcd display. */
               ssp_clock_init();
