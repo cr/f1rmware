@@ -307,7 +307,7 @@ void telegraph_init(void)
 	CGU_XTAL_OSC_CTRL &= ~CGU_XTAL_OSC_CTRL_ENABLE_MASK;
 
 	/* Wait about 100us after Crystal Power ON */
-	delay(WAIT_CPU_CLOCK_INIT_DELAY);
+	delayNop(WAIT_CPU_CLOCK_INIT_DELAY);
 
 	/* use XTAL_OSC as clock source for BASE_M4_CLK (CPU) */
 	CGU_BASE_M4_CLK = (CGU_BASE_M4_CLK_CLK_SEL(CGU_SRC_XTAL) | CGU_BASE_M4_CLK_AUTOBLOCK(1));
@@ -459,8 +459,8 @@ void main_ui(void) {
     pin_setup();
     enable_1v8_power();
     enable_rf_power();
-    delay(1000000);
-    cpu_clock_init();
+    delayNop(1000000);
+    cpuClockInit();
 
     rf_path_init();
 
@@ -495,7 +495,7 @@ void main_ui(void) {
 
       /* Handles joystick up and down, inc/dec frequency when pressed. */
       if ((getInputRaw() & BTN_LEFT) == BTN_LEFT) {
-        delay(8000);
+        delayNop(8000);
         if ((getInputRaw() & BTN_LEFT) == BTN_LEFT) {
           if (g_volume > 0.1)
             g_volume -= 0.001;
@@ -509,7 +509,7 @@ void main_ui(void) {
 
       }
       if ((getInputRaw() & BTN_RIGHT) == BTN_RIGHT) {
-        delay(8000);
+        delayNop(8000);
         if ((getInputRaw() & BTN_RIGHT) == BTN_RIGHT) {
           if (g_volume < 0.99)
             g_volume += 0.001;
@@ -523,7 +523,7 @@ void main_ui(void) {
 
       }
       if ((getInputRaw() & BTN_UP) == BTN_UP) {
-          delay(8000);
+          delayNop(8000);
           if ((getInputRaw() & BTN_UP) == BTN_UP) {
               max2837_stop();
 
@@ -549,7 +549,7 @@ void main_ui(void) {
           }
       }
       if ((getInputRaw() & BTN_DOWN) == BTN_DOWN) {
-          delay(8000);
+          delayNop(8000);
           if ((getInputRaw() & BTN_DOWN) == BTN_DOWN) {
 
               if (g_freq < 40000000)
@@ -583,10 +583,10 @@ void main_ui(void) {
         max2837_start();
         max2837_tx();
         dac_set(8.0*g_volume);
-        delay(5000);
+        delayNop(5000);
         dac_set(8.0*g_volume);
         max2837_stop();
-        delay(5000);
+        delayNop(5000);
       } else if (g_current_mode == TELEGRAPH_TX_MODE) {
         /* We were in TX mode, switch to RX mode. */
         max2837_stop();
