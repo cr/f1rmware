@@ -72,10 +72,9 @@ typedef struct {
 /* Globals */
 
 uint32_t g_freq = 433000000U;
-const uint64_t g_freq64 = (const uint64_t)433000000U;
 uint32_t baseband_filter_bw_hz = 0;
 uint32_t sample_rate_hz;
-telegraph_mode_t g_current_mode = TELEGRAPH_TX_MODE;
+telegraph_mode_t g_current_mode = TELEGRAPH_RX_MODE;
 double g_volume = 0.5;
 
 /* Required for baseband bandwidth cal. */
@@ -354,6 +353,7 @@ void telegraph_init(void)
 		| CGU_IDIVB_CTRL_IDIV(2-1)
 		| CGU_IDIVB_CTRL_PD(0)
 		;
+
 }
 
 void change_freq(uint32_t freq) {
@@ -368,16 +368,13 @@ void change_freq(uint32_t freq) {
    baseband_filter_bw_hz = hackrf_compute_baseband_filter_bw_round_down_lt(sample_rate_hz);
 
    /* Set carrier frequency. */
-   //set_freq(freq64);
+   set_freq(freq64);
    /*
    baseband_streaming_disable();
    rf_path_set_direction(RF_PATH_DIRECTION_TX);
    si5351c_activate_best_clock_source();
    baseband_streaming_enable();
    */
-   max2837_set_frequency(g_freq);
-   max2837_start();
-   max2837_tx();
 }
 
 /*
@@ -390,17 +387,8 @@ void telegraph_init_rx(void)
 {
   ssp1_init();
 
-  /* Set sample rate and frac.
-   * Found in hackrf_transfer.c
-   */
-   sample_rate_frac_set(2*g_freq, 1);
-
-   /* Compute default value depending on sample rate */
-   baseband_filter_bw_hz = hackrf_compute_baseband_filter_bw_round_down_lt(sample_rate_hz);
-
-   /* Set carrier frequency. */
-   set_freq(g_freq);
    //max2837_set_frequency(g_freq);
+  change_freq(g_freq);
   /* Found in hackrf_usb: set_transceiver_mode.
    * Called by hackrf_start_tx().
    */
@@ -408,12 +396,12 @@ void telegraph_init_rx(void)
   baseband_streaming_disable();
   */
   rf_path_set_direction(RF_PATH_DIRECTION_RX);
-  max2837_stop();
+  //max2837_stop();
   si5351c_activate_best_clock_source();
   /*
   baseband_streaming_enable();
   */
-  // Enable amplification (TX)
+  // Enable amplification (RX)
   rf_path_set_lna(1);
   // Enable antenna
   rf_path_set_antenna(1);
@@ -431,16 +419,8 @@ void telegraph_init_tx(void)
 {
   ssp1_init();
 
-  /* Set sample rate and frac.
-   * Found in hackrf_transfer.c
-   */
-   sample_rate_frac_set(2*g_freq, 1);
-
-   /* Compute default value depending on sample rate */
-   baseband_filter_bw_hz = hackrf_compute_baseband_filter_bw_round_down_lt(sample_rate_hz);
-
    /* Set carrier frequency. */
-   set_freq(g_freq);
+   change_freq(g_freq);
    //max2837_set_frequency(g_freq);
 
   /* Found in hackrf_usb: set_transceiver_mode.
@@ -448,7 +428,7 @@ void telegraph_init_tx(void)
    */
 
   rf_path_set_direction(RF_PATH_DIRECTION_TX);
-  max2837_stop();
+  //max2837_stop();
   si5351c_activate_best_clock_source();
 
   // Enable amplification (TX)
@@ -564,21 +544,13 @@ void main_ui(void) {
               }
               ssp1_init();
               ssp1_set_mode_max2837();
-              max2837_set_frequency(g_freq);
+              change_freq(g_freq);
 
-              if (g_current_mode == TELEGRAPH_RX_MODE) {
-                max2837_start();
-                max2837_rx();
-              } else {
-                max2837_start();
-                max2837_tx();
-              }
           }
       }
       if ((getInputRaw() & BTN_DOWN) == BTN_DOWN) {
           delay(8000);
           if ((getInputRaw() & BTN_DOWN) == BTN_DOWN) {
-              max2837_stop();
 
               if (g_freq < 40000000)
                 g_freq = 40000000;
@@ -596,15 +568,8 @@ void main_ui(void) {
               }
               ssp1_init();
               ssp1_set_mode_max2837();
-              max2837_set_frequency(g_freq);
+              change_freq(g_freq);
 
-              if (g_current_mode == TELEGRAPH_RX_MODE) {
-                max2837_start();
-                max2837_rx();
-              } else {
-                max2837_start();
-                max2837_tx();
-              }
           }
       }
       if ((getInputRaw() & BTN_ENTER) == BTN_ENTER) {
